@@ -3,6 +3,8 @@ const cors = require('cors');
 const contactsRouter = require("./app/routes/contact.route");
 const ApiError = require("./app/api-error");
 
+const userRouter = require("./app/routes/user.route");
+
 const app = express();
 
 app.use(cors());
@@ -12,6 +14,9 @@ app.get("/", (_req, res) => {
     res.json({message: "Hi there! Welcome to contact book application."});
 });
 app.use("/api/contacts", contactsRouter);
+
+//
+app.use("/api/user", userRouter);
 
 //Middleware
 app.use((_req, _res, next) => {
