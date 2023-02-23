@@ -17,8 +17,10 @@ class ContactService {
         Object.keys(contact).forEach(
             (key) => contact[key] === undefined && delete contact[key]
         );
+        console.log(contact);
         return contact;
     }
+        
 
     async create(payload) {
         const contact = this.extractContactData(payload);
@@ -66,15 +68,101 @@ class ContactService {
         });
         return result.value;
     }
-    
+
     async deleteAll() {
         const result = await this.Contact.deleteMany({});
         return result.deletedCount;
     }
-    
+
     async findFavorite() {
         return await this.find({
             favorite: true
+        });
+    }
+
+    //PHAN MO RONG:
+
+    extractUserConactData(payload, userId) {
+        console.log(userId);
+        const contact = {
+            name: payload.name,
+            email: payload.email,
+            address: payload.address,
+            phone: payload.phone,
+            favorite: payload.favorite,
+            userId: new ObjectId(userId)
+        };
+
+        Object.keys(contact).forEach(
+            (key) => contact[key] === undefined && delete contact[key]
+        );
+        console.log(contact);
+        return contact;
+    }
+    async findAllContactsOfUser(userId) {
+        return await this.find({
+            userId: new ObjectId(userId)
+        });
+    }
+
+    async findByNameInContact(name, userId) {
+        return await this.find({
+            name: {$regex: new RegExp(name), $options: "i"},
+            userId: new ObjectId(userId)
+        });
+    }
+
+    async createContact(payload, userId) {
+        // console.log(userId);
+        const contact = this.extractUserConactData(payload, userId);
+        const result = await this.Contact.findOneAndUpdate(
+            contact,
+            { $set: { favorite: contact.favorite === true } },
+            { returnDocument: "after", upsert: true }
+        );
+        return result.value;
+    }
+
+    async findByContactId(id, userId) {
+        return await this.Contact.findOne({
+            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+            userId: ObjectId.isValid(userId) ? new ObjectId(userId) : null
+        });
+    }
+
+    async updateContact(id, payload, userId) {
+        const filter = {
+            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+            userId: ObjectId.isValid(userId) ? new ObjectId(userId) : null
+        };
+        const update = this.extractUserConactData(payload, userId);
+        const result = await this.Contact.findOneAndUpdate(
+            filter,
+            { $set: update },
+            { returnDocument: "after"}
+        );
+        return result.value;
+    }
+
+    async deleteContact(id, userId) {
+        const result = await this.Contact.findOneAndDelete({
+            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+            userId: ObjectId.isValid(userId) ? new ObjectId(userId) : null
+        });
+        return result.value;
+    }
+
+    async deleteAllContacts(userId) {
+        const result = await this.Contact.deleteMany({
+            userId: ObjectId.isValid(userId) ? new ObjectId(userId) : null
+        });
+        return result.deletedCount;
+    }
+
+    async findAllFavoriteContacts(userId) {
+        return await this.find({
+            favorite: true,
+            userId: ObjectId.isValid(userId) ? new ObjectId(userId) : null
         });
     }
 }
