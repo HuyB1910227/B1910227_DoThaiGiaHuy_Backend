@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongodb");
 const bcrypt = require('bcrypt');
 
 class UserService {
@@ -11,7 +12,7 @@ class UserService {
             name: payload.name,
             email: payload.email,
             password: hashedPass,
-            
+            accessToken: ""
         };
         return user;
     }
@@ -23,8 +24,6 @@ class UserService {
         return result;
     }
 
-
-    
     async findByName(username) {
         return await this.User.findOne({ name: username});
     }
@@ -33,6 +32,15 @@ class UserService {
         return await this.User.findOne({email});
     }
 
+    async updateToken(userId, token) {
+        const result = await this.User.updateOne(
+            { _id: new ObjectId(userId)},
+            { $set: {accessToken: token} }
+        );
+        return result.modifiedCount > 0;
+    }
+
+    
 }
 
 module.exports = UserService;
